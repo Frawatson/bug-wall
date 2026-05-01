@@ -41,8 +41,3 @@ next-env.d.ts
 
 # claude code local settings
 .claude/
-
-# python
-__pycache__/
-*.pyc
-.venv/
