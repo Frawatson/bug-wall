@@ -52,14 +52,13 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
     return { ok: false, error: 'Invalid vote' };
   }
 
-  const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
+  const column = bugs.upvotes;
+  const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
 
   try {
     const result = await db
       .update(bugs)
-      .set({
-        [parsed.data.direction === 'up' ? 'upvotes' : 'downvotes']: sql`${column} + 1`,
-      })
+      .set({ [key]: sql`${column} + 1` })
       .where(eq(bugs.id, parsed.data.id))
       .returning({ id: bugs.id });
 
@@ -67,7 +66,6 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
       return { ok: false, error: 'Bug not found' };
     }
 
-    revalidatePath('/');
     return { ok: true };
   } catch (err) {
     console.error('voteBug failed:', err);
