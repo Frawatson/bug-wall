@@ -52,15 +52,13 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
     return { ok: false, error: 'Invalid vote' };
   }
 
-  const isUp = parsed.data.direction === 'up';
+  const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
+  const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
 
   try {
     const result = await db
       .update(bugs)
-      .set(isUp
-        ? { upvotes: sql`${bugs.upvotes} + 1` }
-        : { downvotes: sql`${bugs.downvotes} + 1` }
-      )
+      .set({ [key]: sql`${column} + 1` })
       .where(eq(bugs.id, parsed.data.id))
       .returning({ id: bugs.id });
 
