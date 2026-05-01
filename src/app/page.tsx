@@ -31,7 +31,7 @@ export default async function HomePage({
   const orderClause =
     sort === 'new'
       ? desc(bugs.createdAt)
-      : desc(sql`${bugs.downvotes} - ${bugs.upvotes}`);
+      : desc(sql`${bugs.upvotes} - ${bugs.downvotes}`);
 
   const rows = category
     ? await db.select().from(bugs).where(eq(bugs.category, category)).orderBy(orderClause).limit(100)
