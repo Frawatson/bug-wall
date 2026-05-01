@@ -52,7 +52,7 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
     return { ok: false, error: 'Invalid vote' };
   }
 
-  const column = bugs.upvotes;
+  const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
   const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
 
   try {
