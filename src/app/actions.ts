@@ -53,13 +53,12 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
   }
 
   const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
+  const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
 
   try {
     const result = await db
       .update(bugs)
-      .set({
-        [parsed.data.direction === 'up' ? 'upvotes' : 'downvotes']: sql`${column} + 1`,
-      })
+      .set({ [key]: sql`${column} + 1` })
       .where(eq(bugs.id, parsed.data.id))
       .returning({ id: bugs.id });
 
