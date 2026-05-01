@@ -1,6 +1,8 @@
 # Bug Wall
 
-A leaderboard of the worst, weirdest, and most embarrassing bugs ever shipped. Post a bug, upvote/downvote, filter by category. Built as a deployment target for **grapple-pr.com** — the app is intentionally simple but has enough surface area (forms, validation, sorting, mutations, DB queries) to be broken and fixed by AI-reviewed PRs.
+A leaderboard of the worst, weirdest, and most embarrassing bugs ever shipped. Post a bug, upvote/downvote, filter by category.
+
+This repo exists as a **test platform for [grapple-pr.com](https://grapple-pr.com)** — an AI PR review service. The app is intentionally simple but has enough surface area (forms, validation, sorting, mutations, DB queries) for grapple-pr to flag intentional bugs in PRs and propose fixes that we can then verify on a live deploy.
 
 ---
 
@@ -62,8 +64,7 @@ Health check: http://localhost:3000/api/health
 1. Push this repo to GitHub.
 2. On Vercel: **New Project → import the repo**. Framework auto-detects as Next.js.
 3. Add the environment variable **`DATABASE_URL`** pointing at your Postgres (see below).
-4. Deploy.
-5. Add the custom domain `grapple-pr.com` under **Project → Settings → Domains**.
+4. Deploy. Vercel will give you a default URL like `bug-wall.vercel.app` — that's the live app you'll point grapple-pr at when reviewing PRs.
 
 ### Database options
 
@@ -95,7 +96,7 @@ Then run migrations from your laptop the same way.
 
 ## How this app gets used with grapple-pr
 
-1. **Deploy main** to Vercel and point `grapple-pr.com` at it. Confirm the site is live and seeded.
+1. **Deploy `main`** to Vercel. Confirm the site is live, the DB is seeded, and `/api/health` returns 200.
 2. **Open PR #1 — "Add features" with intentional bugs.** Examples of bugs you can introduce on a branch:
    - Swap `bugs.upvotes` and `bugs.downvotes` in the score expression so "top" sort is inverted.
    - Remove the `revalidatePath('/')` calls from server actions so the UI never updates after a vote.
@@ -105,8 +106,8 @@ Then run migrations from your laptop the same way.
    - Remove the Zod `.min(3)` from `createBugSchema` so empty titles are allowed.
    - Forget `await` on `db.insert` so submissions silently no-op.
    - Mutate state without bumping React state in `BugCard` so the score never re-renders.
-3. **Let grapple-pr review the PR.** It should flag the regressions and, if configured, propose a patch.
-4. **Deploy the grapple-suggested patch** as a Vercel preview. Walk through the UI to confirm fixes.
+3. **Let grapple-pr review the PR** at [grapple-pr.com](https://grapple-pr.com). It should flag the regressions and, if configured, propose a patch.
+4. **Deploy the grapple-suggested patch** as a Vercel preview (Vercel auto-builds a preview for every PR). Walk through the UI to confirm fixes.
 5. **Merge** when green.
 
 A clean `main` branch is kept as the baseline so each round of testing starts from a known-working state.

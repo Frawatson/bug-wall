@@ -84,8 +84,13 @@ export default async function HomePage({
       <BugList bugs={rows} />
 
       <footer className="mt-16 text-center text-xs text-zinc-600">
-        Built for testing{' '}
-        <a href="https://grapple-pr.com" className="text-zinc-400 hover:text-zinc-200">
+        A test app reviewed by{' '}
+        <a
+          href="https://grapple-pr.com"
+          target="_blank"
+          rel="noreferrer"
+          className="text-zinc-400 hover:text-zinc-200"
+        >
           grapple-pr
         </a>
         . Self-host the DB with Docker. Deploy the app on Vercel.
