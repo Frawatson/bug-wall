@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:bug_writer/src/commands.dart';
+import 'package:bug_writer/src/dedupe_command.dart';
 import 'package:bug_writer/src/models.dart';
 
 Future<void> main(List<String> args) async {
@@ -12,7 +13,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(NewCommand())
     ..addCommand(ListCommand())
     ..addCommand(ValidateCommand())
-    ..addCommand(SubmitCommand());
+    ..addCommand(SubmitCommand())
+    ..addCommand(DedupeCommand());
 
   try {
     final code = await runner.run(args) ?? 0;
