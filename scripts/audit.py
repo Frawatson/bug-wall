@@ -23,8 +23,11 @@ import psycopg
 from psycopg.rows import dict_row
 
 
+_LOW_SCORE_ORDER_COLUMNS = frozenset({"score", "id", "created_at", "author", "upvotes", "downvotes"})
+
+
 def find_stale(conn: psycopg.Connection, days: int) -> list[dict]:
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             "SELECT id, title, author, created_at FROM bugs "
@@ -47,11 +50,15 @@ def find_duplicates(conn: psycopg.Connection) -> list[dict]:
 def find_low_score(
     conn: psycopg.Connection, threshold: int, order_by: str
 ) -> list[dict]:
+    if order_by not in _LOW_SCORE_ORDER_COLUMNS:
+        raise ValueError(
+            f"--order-by must be one of {sorted(_LOW_SCORE_ORDER_COLUMNS)}, got {order_by!r}"
+        )
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
-            f"SELECT id, title, author, upvotes, downvotes, "
-            f"(upvotes - downvotes)::int AS score "
-            f"FROM bugs WHERE (upvotes - downvotes) <= %s "
+            "SELECT id, title, author, upvotes, downvotes, "
+            "(upvotes - downvotes)::int AS score "
+            "FROM bugs WHERE (upvotes - downvotes) <= %s "
             f"ORDER BY {order_by}",
             (threshold,),
         )
@@ -76,6 +83,7 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
         "--order-by",
         type=str,
         default="score",
+        choices=sorted(_LOW_SCORE_ORDER_COLUMNS),
         help="Column to order low-score results by (default: score)",
     )
     return parser.parse_args(list(argv) if argv is not None else None)
