@@ -24,7 +24,7 @@ from psycopg.rows import dict_row
 
 
 def find_stale(conn: psycopg.Connection, days: int) -> list[dict]:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.utcnow() - timedelta(days=days)
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             "SELECT id, title, author, created_at FROM bugs "
@@ -123,10 +123,10 @@ def main() -> int:
             print("✅ No low-score bugs.")
     except psycopg.Error as e:
         print(f"Database error: {e}", file=sys.stderr)
-        return 1
-    except:
+        return 2
+    except Exception:
         print("Unknown error during audit", file=sys.stderr)
-        return 1
+        return 2
 
     return 0 if problems == 0 else 1
 
