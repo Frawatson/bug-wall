@@ -89,10 +89,10 @@ def main() -> int:
         print("DATABASE_URL is not set", file=sys.stderr)
         return 2
 
-    conn = psycopg.connect(url)
     problems = 0
 
     try:
+        conn = psycopg.connect(url)
         stale = find_stale(conn, args.stale_days)
         if stale:
             print(f"⚠️  {len(stale)} stale bug(s) (>{args.stale_days} days old):")
