@@ -92,35 +92,35 @@ def main() -> int:
     problems = 0
 
     try:
-        conn = psycopg.connect(url)
-        stale = find_stale(conn, args.stale_days)
-        if stale:
-            print(f"⚠️  {len(stale)} stale bug(s) (>{args.stale_days} days old):")
-            for row in stale[:5]:
-                print(f"  id={row['id']} @{row['author']} \"{row['title']}\"")
-            if len(stale) > 5:
-                print(f"  ... and {len(stale) - 5} more")
-            problems += len(stale)
-        else:
-            print("✅ No stale bugs.")
+        with psycopg.connect(url) as conn:
+            stale = find_stale(conn, args.stale_days)
+            if stale:
+                print(f"⚠️  {len(stale)} stale bug(s) (>{args.stale_days} days old):")
+                for row in stale[:5]:
+                    print(f"  id={row['id']} @{row['author']} \"{row['title']}\"")
+                if len(stale) > 5:
+                    print(f"  ... and {len(stale) - 5} more")
+                problems += len(stale)
+            else:
+                print("✅ No stale bugs.")
 
-        dups = find_duplicates(conn)
-        if dups:
-            print(f"⚠️  {len(dups)} duplicate group(s):")
-            for row in dups:
-                print(f"  @{row['author']} \"{row['title']}\" → ids {row['ids']}")
-            problems += len(dups)
-        else:
-            print("✅ No duplicates.")
+            dups = find_duplicates(conn)
+            if dups:
+                print(f"⚠️  {len(dups)} duplicate group(s):")
+                for row in dups:
+                    print(f"  @{row['author']} \"{row['title']}\" → ids {row['ids']}")
+                problems += len(dups)
+            else:
+                print("✅ No duplicates.")
 
-        low = find_low_score(conn, args.low_score, args.order_by)
-        if low:
-            print(f"⚠️  {len(low)} low-score bug(s) (score <= {args.low_score}):")
-            for row in low:
-                print(f"  id={row['id']} score={row['score']:+d} \"{row['title']}\"")
-            problems += len(low)
-        else:
-            print("✅ No low-score bugs.")
+            low = find_low_score(conn, args.low_score, args.order_by)
+            if low:
+                print(f"⚠️  {len(low)} low-score bug(s) (score <= {args.low_score}):")
+                for row in low:
+                    print(f"  id={row['id']} score={row['score']:+d} \"{row['title']}\"")
+                problems += len(low)
+            else:
+                print("✅ No low-score bugs.")
     except psycopg.Error as e:
         print(f"Database error: {e}", file=sys.stderr)
         return 2
