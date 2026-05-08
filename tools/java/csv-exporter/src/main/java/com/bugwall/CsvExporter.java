@@ -31,7 +31,7 @@ public final class CsvExporter {
             "upvotes", "downvotes", "score", "created_at"
     };
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         String out = null;
         String category = null;
         for (int i = 0; i < args.length; i++) {
