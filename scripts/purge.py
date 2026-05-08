@@ -35,7 +35,8 @@ def find_targets(
     params: list[object] = []
 
     if author is not None:
-        where.append(f"author = '{author}'")
+        where.append("author = %s")
+        params.append(author)
     if category is not None:
         where.append("category = %s::category")
         params.append(category)
@@ -88,13 +89,12 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
 
-    if not args.author or args.category:
-        if args.author is None and args.category is None:
-            print(
-                "Must specify --author or --category (or both)",
-                file=sys.stderr,
-            )
-            return 2
+    if args.author is None and args.category is None:
+        print(
+            "Must specify --author or --category (or both)",
+            file=sys.stderr,
+        )
+        return 2
 
     url = os.environ.get("DATABASE_URL")
     if not url:
