@@ -115,6 +115,10 @@ public final class CsvExporter {
                 throw new IllegalArgumentException("invalid DATABASE_URL: " + e.getMessage());
             }
             String host = uri.getHost();
+            if (host == null || host.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "invalid DATABASE_URL: host is missing (Unix-socket style URLs are not supported)");
+            }
             int port = uri.getPort() == -1 ? 5432 : uri.getPort();
             String db = uri.getPath() == null || uri.getPath().isEmpty()
                     ? "" : uri.getPath().substring(1);
