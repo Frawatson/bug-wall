@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:bug_writer/src/commands.dart';
 import 'package:bug_writer/src/dedupe_command.dart';
+import 'package:bug_writer/src/export_command.dart';
 import 'package:bug_writer/src/models.dart';
 
 Future<void> main(List<String> args) async {
@@ -14,7 +15,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(ListCommand())
     ..addCommand(ValidateCommand())
     ..addCommand(SubmitCommand())
-    ..addCommand(DedupeCommand());
+    ..addCommand(DedupeCommand())
+    ..addCommand(ExportCommand());
 
   try {
     final code = await runner.run(args) ?? 0;
