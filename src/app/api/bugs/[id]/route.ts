@@ -31,6 +31,10 @@ export async function GET(
       .where(eq(bugs.id, id))
       .limit(1);
 
+    if (rows.length === 0) {
+      return NextResponse.json({ error: 'Bug not found' }, { status: 404 });
+    }
+
     const bug = rows[0] as Bug;
 
     return NextResponse.json({
@@ -42,12 +46,13 @@ export async function GET(
         author: bug.author,
         upvotes: bug.upvotes,
         downvotes: bug.downvotes,
+        score: (bug as any).score,
         createdAt: bug.createdAt,
       },
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'unknown' },
+      { error: 'Internal server error' },
       { status: 500 },
     );
   }
