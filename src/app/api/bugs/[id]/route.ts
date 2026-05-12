@@ -46,7 +46,7 @@ export async function GET(
         author: bug.author,
         upvotes: bug.upvotes,
         downvotes: bug.downvotes,
-        score: (bug as any).score,
+        // score is intentionally excluded from the response
         createdAt: bug.createdAt,
       },
     });
