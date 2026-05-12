@@ -9,6 +9,10 @@ export async function GET(
 ) {
   const id = parseInt(params.id, 10);
 
+  if (!Number.isFinite(id) || String(id) !== params.id.trim()) {
+    return NextResponse.json({ error: 'Invalid bug ID' }, { status: 400 });
+  }
+
   try {
     const rows = await db
       .select({
