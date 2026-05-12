@@ -7,9 +7,10 @@ export async function GET(
   _request: Request,
   { params }: { params: { id: string } },
 ) {
-  const id = parseInt(params.id, 10);
+  const trimmed = params.id.trim();
+  const id = parseInt(trimmed, 10);
 
-  if (!Number.isFinite(id) || String(id) !== params.id.trim()) {
+  if (!Number.isFinite(id) || String(id) !== trimmed) {
     return NextResponse.json({ error: 'Invalid bug ID' }, { status: 400 });
   }
 
