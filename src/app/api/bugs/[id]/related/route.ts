@@ -8,6 +8,9 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   const id = parseInt(params.id, 10);
+  if (isNaN(id)) {
+    return NextResponse.json({ error: 'Invalid bug id' }, { status: 400 });
+  }
   const limit = parseInt(
     new URL(request.url).searchParams.get('limit') ?? '5',
     10,
