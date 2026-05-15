@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 /**
  * Probes the Bug Wall app's /api/health endpoint and exits non-zero on failure.
@@ -25,9 +26,12 @@ public final class HealthCheck {
         String base = args[0];
         int retries = args.length >= 2 ? Integer.parseInt(args[1]) : 0;
 
-        HttpClient client = HttpClient.newHttpClient();
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(base + "/api/health"))
+                .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
 
