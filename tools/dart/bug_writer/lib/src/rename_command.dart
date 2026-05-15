@@ -54,7 +54,7 @@ class RenameCommand extends Command<int> {
         category: d.category,
         author: to,
       );
-      store.save(updated);
+      await store.save(updated);
     }
     print('Renamed ${matches.length} draft(s) from "$from" to "$to".');
     return 0;
