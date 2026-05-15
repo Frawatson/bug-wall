@@ -26,6 +26,8 @@ class RenameCommand extends Command<int> {
     final dryRun = argResults!['dry-run'] as bool;
 
     final store = DraftStore.fromEnv();
+    // TODO: needs DraftStore.listByAuthor(handle) or a streaming/paginated API
+    // to avoid loading the full draft corpus into memory. For now, load all and filter.
     final drafts = await store.listAll();
     final matches = drafts.where((d) => d.author.contains(from)).toList();
 
