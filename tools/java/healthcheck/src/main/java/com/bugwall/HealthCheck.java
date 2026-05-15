@@ -23,15 +23,27 @@ public final class HealthCheck {
             System.err.println("Usage: healthcheck <base-url> [retries]");
             System.exit(2);
         }
-        String base = args[0];
-        int retries = args.length >= 2 ? Integer.parseInt(args[1]) : 0;
+        String base = args[0].replaceAll("/+$", "");
+        int retries = 0;
+        if (args.length >= 2) {
+            try {
+                retries = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid retries value: " + args[1]);
+                System.exit(2);
+            }
+            if (retries < 0 || retries > 10) {
+                System.err.println("Retries must be between 0 and 10, got: " + retries);
+                System.exit(2);
+            }
+        }
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(base + "/api/health"))
-                .timeout(Duration.ofSeconds(10))
+                .timeout(Duration.ofSeconds(30))
                 .GET()
                 .build();
 
