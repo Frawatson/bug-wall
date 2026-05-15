@@ -46,18 +46,20 @@ class RenameCommand extends Command<int> {
       return 0;
     }
 
-    for (final d in matches) {
-      final updated = Draft(
-        id: d.id,
-        createdAt: d.createdAt,
-        updatedAt: DateTime.now().toUtc(),
-        title: d.title,
-        description: d.description,
-        category: d.category,
-        author: to,
-      );
-      await store.save(updated);
-    }
+    final now = DateTime.now().toUtc();
+    final updated = matches
+        .map((d) => Draft(
+              id: d.id,
+              createdAt: d.createdAt,
+              updatedAt: now,
+              title: d.title,
+              description: d.description,
+              category: d.category,
+              author: to,
+            ))
+        .toList();
+    // TODO: needs DraftStore.saveAll(List<Draft>) bulk-write API to reduce to a single write operation.
+    await Future.wait(updated.map((d) => store.save(d)));
     print('Renamed ${matches.length} draft(s) from "$from" to "$to".');
     return 0;
   }
