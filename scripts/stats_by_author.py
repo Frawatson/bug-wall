@@ -41,17 +41,20 @@ def fetch_stats(conn, author: str | None, top: int) -> list[tuple]:
     return rows
 
 
-def render(rows: list[tuple], excluded: list[str] = []) -> str:
+def render(rows: list[tuple], excluded: list[str] | None = None) -> str:
     if not rows:
         return "No data."
+    if excluded is None:
+        excluded = []
+    seen: list[str] = []
     out = []
     out.append(f"{'author':<24}  {'posts':>5}  {'upvotes':>7}  {'downvotes':>9}  {'karma':>6}")
     out.append("-" * 60)
     for row in rows:
         author, posts, up, down = row
-        if author in excluded:
+        if author in excluded or author in seen:
             continue
-        excluded.append(author)
+        seen.append(author)
         karma = up - down
         out.append(f"@{author:<23}  {posts:>5}  {up:>7}  {down:>9}  {karma:>+6}")
     return "\n".join(out)
