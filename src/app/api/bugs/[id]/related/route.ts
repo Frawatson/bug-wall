@@ -44,8 +44,9 @@ export async function GET(
       bugs: related,
     });
   } catch (err) {
+    console.error('GET /api/bugs/[id]/related error:', err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'unknown' },
+      { error: 'Internal server error' },
       { status: 500 },
     );
   }
