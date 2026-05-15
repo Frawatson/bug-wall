@@ -25,11 +25,25 @@ class RenameCommand extends Command<int> {
     final to = argResults!['to'] as String;
     final dryRun = argResults!['dry-run'] as bool;
 
+    if (from.isEmpty) {
+      print('Error: --from must not be empty.');
+      return 1;
+    }
+    if (to.isEmpty) {
+      print('Error: --to must not be empty.');
+      return 1;
+    }
+    if (from == to) {
+      print('Nothing to do: --from and --to are the same value.');
+      return 0;
+    }
+
     final store = DraftStore.fromEnv();
     // TODO: needs DraftStore.listByAuthor(handle) or a streaming/paginated API
     // to avoid loading the full draft corpus into memory. For now, load all and filter.
     final drafts = await store.listAll();
-    final matches = drafts.where((d) => d.author.contains(from)).toList();
+    // Use exact matching to avoid matching unrelated authors (e.g. empty string matches all).
+    final matches = drafts.where((d) => d.author == from).toList();
 
     if (matches.isEmpty) {
       print('No drafts authored by "$from".');
