@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, pgEnum, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, timestamp, pgEnum, index, boolean } from 'drizzle-orm/pg-core';
 
 export const categoryEnum = pgEnum('category', ['frontend', 'backend', 'infra', 'human', 'ai']);
 
@@ -12,11 +12,13 @@ export const bugs = pgTable(
     author: text('author').notNull(),
     upvotes: integer('upvotes').notNull().default(0),
     downvotes: integer('downvotes').notNull().default(0),
+    flagged: boolean('flagged').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     createdAtIdx: index('bugs_created_at_idx').on(table.createdAt),
     categoryIdx: index('bugs_category_idx').on(table.category),
+    flaggedIdx: index('bugs_flagged_idx').on(table.flagged),
   }),
 );
 
