@@ -12,7 +12,7 @@ export const bugs = pgTable(
     author: text('author').notNull(),
     upvotes: integer('upvotes').notNull().default(0),
     downvotes: integer('downvotes').notNull().default(0),
-    flagged: boolean('flagged').notNull(),
+    flagged: boolean('flagged').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
