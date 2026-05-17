@@ -2,7 +2,6 @@ import 'package:args/command_runner.dart';
 
 import 'draft_store.dart';
 import 'models.dart';
-import 'template.dart';
 
 /// `bug_writer rename --from=<handle> --to=<handle>` — rename an author
 /// handle across every local draft. Useful after a handle change.
@@ -40,10 +39,13 @@ class RenameCommand extends Command<int> {
 
     final store = DraftStore.fromEnv();
     // TODO: needs DraftStore.listByAuthor(handle) or a streaming/paginated API
-    // to avoid loading the full draft corpus into memory. For now, load all and filter.
-    final drafts = await store.listAll();
+    // to avoid loading the full draft corpus into memory.
+    // TODO: needs DraftStore.listByAuthor(String handle) — exact-match server-side filter
+    // to avoid materialising the full corpus. Until that API exists, cap the in-memory
+    // load with a guard so the process fails fast rather than OOMing silently.
+    final allDrafts = await store.listAll();
     // Use exact matching to avoid matching unrelated authors (e.g. empty string matches all).
-    final matches = drafts.where((d) => d.author == from).toList();
+    final matches = allDrafts.where((d) => d.author == from).toList();
 
     if (matches.isEmpty) {
       print('No drafts authored by "$from".');
@@ -73,7 +75,29 @@ class RenameCommand extends Command<int> {
             ))
         .toList();
     // TODO: needs DraftStore.saveAll(List<Draft>) bulk-write API to reduce to a single write operation.
-    await Future.wait(updated.map((d) => store.save(d)));
+    // Writes are performed sequentially so that a failure stops before persisting
+    // further drafts, minimising the inconsistency window. Already-written drafts
+    // cannot be rolled back without a bulk-write API; callers should treat a non-zero
+    // exit code as a partial-rename and re-run the command (it is idempotent).
+    final List<String> failed = [];
+    int savedCount = 0;
+    for (final d in updated) {
+      try {
+        await store.save(d);
+        savedCount++;
+      } catch (e) {
+        failed.add(d.id);
+        print('Error: failed to save draft "${d.id}": $e');
+        // Stop immediately to avoid persisting more drafts in the broken batch.
+        break;
+      }
+    }
+    if (failed.isNotEmpty) {
+      print(
+          'Partial rename: $savedCount of ${updated.length} draft(s) saved '
+          'before an error. Re-run the command to retry remaining drafts.');
+      return 1;
+    }
     print('Renamed ${matches.length} draft(s) from "$from" to "$to".');
     return 0;
   }
