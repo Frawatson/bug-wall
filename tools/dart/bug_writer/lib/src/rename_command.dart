@@ -2,7 +2,6 @@ import 'package:args/command_runner.dart';
 
 import 'draft_store.dart';
 import 'models.dart';
-import 'template.dart';
 
 /// `bug_writer rename --from=<handle> --to=<handle>` — rename an author
 /// handle across every local draft. Useful after a handle change.
@@ -25,8 +24,28 @@ class RenameCommand extends Command<int> {
     final to = argResults!['to'] as String;
     final dryRun = argResults!['dry-run'] as bool;
 
-    final store = DraftStore.fromEnv();
-    final drafts = await store.listAll();
+    if (from.isEmpty) {
+      print('Error: --from must not be empty.');
+      return 1;
+    }
+    if (to.isEmpty) {
+      print('Error: --to must not be empty.');
+      return 1;
+    }
+    if (from == to) {
+      print('Error: --from and --to are identical; nothing to rename.');
+      return 1;
+    }
+
+    final DraftStore store;
+    final List<Draft> drafts;
+    try {
+      store = DraftStore.fromEnv();
+      drafts = await store.listAll();
+    } catch (e) {
+      print('Error: $e');
+      return 1;
+    }
     final matches = drafts.where((d) => d.author.contains(from)).toList();
 
     if (matches.isEmpty) {
@@ -54,7 +73,7 @@ class RenameCommand extends Command<int> {
         category: d.category,
         author: to,
       );
-      store.save(updated);
+      await store.save(updated);
     }
     print('Renamed ${matches.length} draft(s) from "$from" to "$to".');
     return 0;
