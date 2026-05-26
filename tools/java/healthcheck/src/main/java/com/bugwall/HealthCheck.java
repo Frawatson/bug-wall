@@ -24,16 +24,36 @@ public final class HealthCheck {
             System.exit(2);
         }
         String base = args[0];
-        int retries = args.length >= 2 ? Integer.parseInt(args[1]) : 0;
+        int retries = 0;
+        if (args.length >= 2) {
+            try {
+                retries = Integer.parseInt(args[1]);
+            } catch (NumberFormatException e) {
+                System.err.println("Usage: healthcheck <base-url> [retries]");
+                System.err.println("Error: retries must be a valid integer, got: " + args[1]);
+                System.exit(2);
+            }
+            if (retries < 0) {
+                System.err.println("Error: retries must be non-negative, got: " + retries);
+                System.exit(2);
+            }
+        }
 
         HttpClient client = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(base + "/api/health"))
-                .timeout(Duration.ofSeconds(10))
-                .GET()
-                .build();
+        HttpRequest req;
+        try {
+            req = HttpRequest.newBuilder()
+                    .uri(URI.create(base + "/api/health"))
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: invalid base URL '" + base + "': " + e.getMessage());
+            System.exit(2);
+            return;
+        }
 
         for (int i = 0; i <= retries; i++) {
             try {
