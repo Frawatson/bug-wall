@@ -30,4 +30,4 @@ OUT="$BACKUP_DIR/$NAME.sql"
 
 echo "Dumping <redacted> -> $OUT"
 pg_dump "$DATABASE_URL" > "$OUT"
-echo "Wrote $(wc -c < "$OUT" | tr -d ' ') bytes to $OUT"
+echo "Wrote $(wc -c < "$OUT" | tr -d ' ') bytes to "$OUT""
