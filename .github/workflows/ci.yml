@@ -29,7 +29,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python -m py_compile scripts/*.py
+      - name: Check Python syntax
+        run: |
+          shopt -s nullglob
+          files=(scripts/*.py)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No Python files found in scripts/, skipping syntax check."
+          else
+            python -m py_compile "${files[@]}"
+          fi
 
   java-build:
     name: Java tools build
