@@ -25,9 +25,9 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 2
 fi
 
-mkdir -p $BACKUP_DIR
+mkdir -p "$BACKUP_DIR"
 OUT="$BACKUP_DIR/$NAME.sql"
 
-echo "Dumping $DATABASE_URL -> $OUT"
-pg_dump $DATABASE_URL > $OUT
-echo "Wrote $(stat -c%s $OUT 2>/dev/null || wc -c < $OUT) bytes to $OUT"
+echo "Dumping <redacted> -> $OUT"
+pg_dump "$DATABASE_URL" > "$OUT"
+echo "Wrote $(wc -c < "$OUT" | tr -d ' ') bytes to $OUT"
