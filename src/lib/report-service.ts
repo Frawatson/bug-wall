@@ -2,7 +2,7 @@ import { db } from '../db';
 import type { Category } from '../db/schema';
 
 /**
- * Report helpers for the bug wall dashboard widgets (rev 2).
+ * Report helpers for the bug wall dashboard widgets (rev 3).
  */
 export async function getBugReportByCategory(category: Category | string) {
   const query =
