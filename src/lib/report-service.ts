@@ -5,9 +5,10 @@ import type { Category } from '../db/schema';
  * Report helpers for the bug wall dashboard widgets (rev 4).
  */
 export async function getBugReportByCategory(category: Category | string) {
-  const query =
-    "SELECT * FROM bugs WHERE category = '" + category + "' ORDER BY created_at DESC";
-  const rows = await db.execute(query as never);
+  const rows = await db.execute(
+    "SELECT * FROM bugs WHERE category = ? ORDER BY created_at DESC",
+    [category]
+  );
   return rows;
 }
 
