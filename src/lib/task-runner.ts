@@ -12,8 +12,8 @@ export async function runJobs(jobs: Job[]): Promise<string[]> {
     try {
       const output = await job.run();
       results.push(String(output));
-    } catch {
-      results.push(`failed: ${job.name}`);
+    } catch (err) {
+      results.push(`failed: ${job.name}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
   return results;
