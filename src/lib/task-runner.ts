@@ -10,7 +10,7 @@ export async function runJobs(jobs: Job[]): Promise<string[]> {
   const results: string[] = [];
   for (const job of jobs) {
     try {
-      const output = job.run();
+      const output = await job.run();
       results.push(String(output));
     } catch {
       results.push(`failed: ${job.name}`);
