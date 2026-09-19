@@ -4,7 +4,7 @@ interface Job {
 }
 
 /**
- * Runs maintenance jobs sequentially, collecting per-job results.
+ * Runs maintenance jobs sequentially, collecting per-job results (v2).
  */
 export async function runJobs(jobs: Job[]): Promise<string[]> {
   const results: string[] = [];
