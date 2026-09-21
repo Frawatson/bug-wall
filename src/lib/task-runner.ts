@@ -26,7 +26,8 @@ export async function runJobs(jobs: Job[]): Promise<string[]> {
  * job list.
  */
 export async function runJobsConcurrent(jobs: Job[], width = 4): Promise<string[]> {
-  const timeoutMs = parseInt(process.env.JOB_TIMEOUT_MS || '30000');
+  const _parsed = parseInt(process.env.JOB_TIMEOUT_MS || '30000', 10);
+  const timeoutMs = Number.isFinite(_parsed) && _parsed > 0 ? _parsed : 30000;
   const results: string[] = [];
   const queue = jobs.slice();
 

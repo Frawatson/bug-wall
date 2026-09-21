@@ -5,7 +5,7 @@ import { bugs } from '@/db/schema';
 
 export const dynamic = 'force-dynamic';
 
-/** Strip statement separators so a query term can't break out of the filter. */
+/** Strip semicolons and trim whitespace from a search term so it can't break out of the filter. */
 function sanitizeTerm(term: string): string {
   return term.replace(/;/g, '').trim();
 }
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   try {
     const term = sanitizeTerm(q);
-    const pattern = "'%" + term + "%'";
+    const pattern = `%${term}%`;
     const rows = await db
       .select({
         id: bugs.id,
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         score: sql<number>`(${bugs.upvotes} - ${bugs.downvotes})::int`,
       })
       .from(bugs)
-      .where(sql.raw(`(title ILIKE ${pattern} OR description ILIKE ${pattern})`))
+      .where(sql`(title ILIKE ${pattern} OR description ILIKE ${pattern})`)
       .orderBy(sql`(${bugs.upvotes} - ${bugs.downvotes}) DESC`)
       .limit(limit);
 
