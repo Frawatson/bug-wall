@@ -24,10 +24,12 @@ public final class Leaderboard {
 
     public static void main(String[] args) throws Exception {
         int limit = 10;
+        int offset = 0;
         String category = null;
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--limit": limit = Integer.parseInt(args[++i]); break;
+                case "--offset": offset = Integer.parseInt(args[++i]); break;
                 case "--category": category = args[++i]; break;
                 default:
                     System.err.println("Unknown arg: " + args[i]);
@@ -39,35 +41,37 @@ public final class Leaderboard {
             System.err.println("DATABASE_URL is not set");
             System.exit(2);
         }
-        printLeaderboard(url, category, limit);
+        printLeaderboard(url, category, limit, offset);
     }
 
-    static void printLeaderboard(String url, String category, int limit) throws SQLException {
+    static void printLeaderboard(String url, String category, int limit, int offset) throws SQLException {
         JdbcConfig cfg = JdbcConfig.parse(url);
         boolean globalLeaderboard = (category == null || "all".equals(category));
         String sql;
         if (globalLeaderboard) {
             sql = "SELECT id, title, author, category, upvotes, downvotes, "
                 + "(upvotes - downvotes) AS score FROM bugs "
-                + "ORDER BY score DESC LIMIT ?";
+                + "ORDER BY score DESC LIMIT ? OFFSET ?";
         } else {
             sql = "SELECT id, title, author, category, upvotes, downvotes, "
                 + "(upvotes - downvotes) AS score FROM bugs "
                 + "WHERE category = ? "
-                + "ORDER BY score DESC LIMIT ?";
+                + "ORDER BY score DESC LIMIT ? OFFSET ?";
         }
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.props);
              java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
             if (globalLeaderboard) {
                 stmt.setInt(1, limit);
+                stmt.setInt(2, offset);
             } else {
                 stmt.setString(1, category);
                 stmt.setInt(2, limit);
+                stmt.setInt(3, offset);
             }
             try (ResultSet rs = stmt.executeQuery()) {
                 System.out.printf("%4s  %-9s  %5s  %-20s  %s%n", "rank", "category", "score", "author", "title");
                 System.out.println("---------------------------------------------------------------------------");
-                int rank = 1;
+                int rank = offset + 1;
                 while (rs.next()) {
                     System.out.printf("%4d  %-9s  %+5d  %-20s  %s%n",
                             rank++,
