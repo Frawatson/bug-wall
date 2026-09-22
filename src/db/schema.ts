@@ -20,8 +20,30 @@ export const bugs = pgTable(
   }),
 );
 
+export const voteDirectionEnum = pgEnum('vote_direction', ['up', 'down']);
+
+/**
+ * One row per (visitor, bug) vote — the ledger behind one-vote-per-
+ * visitor dedup. voterHash is a truncated SHA-256 of the visitor
+ * token; we never store the raw token.
+ */
+export const votes = pgTable(
+  'votes',
+  {
+    id: serial('id').primaryKey(),
+    bugId: integer('bug_id').notNull(),
+    voterHash: text('voter_hash').notNull(),
+    direction: voteDirectionEnum('direction').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    voterLookupIdx: index('votes_bug_voter_idx').on(table.bugId, table.voterHash),
+  }),
+);
+
 export type Bug = typeof bugs.$inferSelect;
 export type NewBug = typeof bugs.$inferInsert;
+export type Vote = typeof votes.$inferSelect;
 
 export const CATEGORIES = ['frontend', 'backend', 'infra', 'human', 'ai'] as const;
 export type Category = (typeof CATEGORIES)[number];

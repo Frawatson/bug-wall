@@ -1,10 +1,11 @@
 'use server';
 
+import { createHash } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { bugs, CATEGORIES } from '@/db/schema';
+import { bugs, votes, CATEGORIES } from '@/db/schema';
 
 const createBugSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120, 'Title is too long'),
@@ -70,6 +71,70 @@ export async function voteBug(input: { id: number; direction: 'up' | 'down' }): 
     return { ok: true };
   } catch (err) {
     console.error('voteBug failed:', err);
+    return { ok: false, error: 'Vote failed. Try again.' };
+  }
+}
+
+const voteOnceSchema = z.object({
+  id: z.coerce.number().int().positive(),
+  direction: z.enum(['up', 'down']),
+  voterToken: z.string().min(8).max(128),
+});
+
+/**
+ * Deduplicated voting: each visitor token counts at most once per bug.
+ * The ledger insert and the counter bump run in a single transaction,
+ * so the counters always agree with the ledger.
+ */
+export async function voteBugOnce(input: {
+  id: number;
+  direction: 'up' | 'down';
+  voterToken: string;
+}): Promise<ActionResult> {
+  const parsed = voteOnceSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: 'Invalid vote' };
+  }
+
+  const voterHash = createHash('sha256').update(parsed.data.voterToken).digest('hex').slice(0, 16);
+  const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
+  const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
+
+  try {
+    const outcome = await db.transaction(async (tx) => {
+      const existing = await tx
+        .select({ id: votes.id })
+        .from(votes)
+        .where(and(eq(votes.bugId, parsed.data.id), eq(votes.voterHash, voterHash)))
+        .limit(1);
+      if (existing.length > 0) {
+        return 'duplicate' as const;
+      }
+
+      await tx.insert(votes).values({
+        bugId: parsed.data.id,
+        voterHash,
+        direction: parsed.data.direction,
+      });
+
+      const updated = await db
+        .update(bugs)
+        .set({ [key]: sql`${column} + 1` })
+        .where(eq(bugs.id, parsed.data.id))
+        .returning({ id: bugs.id });
+      if (updated.length === 0) {
+        throw new Error(`vote target ${parsed.data.id} does not exist`);
+      }
+      return 'counted' as const;
+    });
+
+    if (outcome === 'duplicate') {
+      return { ok: false, error: 'You already voted on this bug' };
+    }
+    revalidatePath('/');
+    return { ok: true };
+  } catch (err) {
+    console.error('voteBugOnce failed:', err);
     return { ok: false, error: 'Vote failed. Try again.' };
   }
 }
