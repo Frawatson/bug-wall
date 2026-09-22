@@ -28,9 +28,7 @@ export async function GET(request: Request) {
 
   try {
     const term = sanitizeTerm(q);
-    // TODO: ensure a pg_trgm GIN index exists on bugs(title, description) and a functional index on (upvotes - downvotes) DESC for this query to be efficient.
-    // Use to_tsquery / plainto_tsquery full-text search instead of ILIKE once tsvector columns/indexes are available.
-    const tsQuery = sql`plainto_tsquery('english', ${term})`;
+    const pattern = `%${term}%`;
     const rows = await db
       .select({
         id: bugs.id,
@@ -40,12 +38,7 @@ export async function GET(request: Request) {
         score: sql<number>`(${bugs.upvotes} - ${bugs.downvotes})::int`,
       })
       .from(bugs)
-      .where(
-        sql`(
-          to_tsvector('english', coalesce(${bugs.title}, '')) ||
-          to_tsvector('english', coalesce(${bugs.description}, ''))
-        ) @@ ${tsQuery}`,
-      )
+      .where(sql`(title ILIKE ${pattern} OR description ILIKE ${pattern})`)
       .orderBy(sql`(${bugs.upvotes} - ${bugs.downvotes}) DESC`)
       .limit(limit);
 
