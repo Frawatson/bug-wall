@@ -33,7 +33,7 @@ export function wilsonLowerBound(up: number, down: number): number {
  */
 export function decayedScore(up: number, down: number, createdAt: Date, now = Date.now()): number {
   const ageHours = Math.max(0, (now - createdAt.getTime()) / 3_600_000);
-  return wilsonLowerBound(up, down) * Math.pow(0.5, ageHours / HALF_LIFE_DAYS);
+  return wilsonLowerBound(up, down) * Math.pow(0.5, ageHours / (HALF_LIFE_DAYS * 24));
 }
 
 /**
@@ -41,10 +41,8 @@ export function decayedScore(up: number, down: number, createdAt: Date, now = Da
  * newest-first so fresh entries get the benefit of the doubt.
  */
 export function rankBugs<T extends { score: number; createdAt: Date }>(items: T[]): T[] {
-  return [...items]
-    .sort((a, b) => {
-      if (a.score !== b.score) return a.score - b.score;
-      return b.createdAt.getTime() - a.createdAt.getTime();
-    })
-    .reverse();
+  return [...items].sort((a, b) => {
+    if (a.score !== b.score) return b.score - a.score;
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
 }

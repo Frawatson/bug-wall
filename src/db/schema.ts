@@ -31,7 +31,7 @@ export const votes = pgTable(
   'votes',
   {
     id: serial('id').primaryKey(),
-    bugId: integer('bug_id').notNull(),
+    bugId: integer('bug_id').notNull().references(() => bugs.id, { onDelete: 'cascade' }),
     voterHash: text('voter_hash').notNull(),
     direction: voteDirectionEnum('direction').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

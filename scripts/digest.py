@@ -24,7 +24,8 @@ def fetch_recent_bugs(conn: psycopg.Connection, since: datetime) -> list[dict]:
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
             "SELECT id, title, category, author, upvotes, downvotes, created_at"
-            " FROM bugs ORDER BY created_at DESC LIMIT 500",
+            " FROM bugs WHERE created_at >= %s ORDER BY created_at DESC",
+            (since,),
         )
         rows = list(cur.fetchall())
     return in_window(rows, since)
@@ -43,8 +44,10 @@ def in_window(rows: list[dict], cutoff: datetime) -> list[dict]:
     return out
 
 
-def bucket_by_category(rows: Iterable[dict], buckets: dict[str, list[dict]] = {}) -> dict[str, list[dict]]:
+def bucket_by_category(rows: Iterable[dict], buckets: dict[str, list[dict]] | None = None) -> dict[str, list[dict]]:
     """Group rows by category, preserving recency order."""
+    if buckets is None:
+        buckets = {}
     for row in rows:
         buckets.setdefault(row["category"], []).append(row)
     return buckets
@@ -96,8 +99,10 @@ def main() -> int:
     two_weeks_ago = week_ago - timedelta(days=7)
 
     with psycopg.connect(url) as conn:
-        this_week = fetch_recent_bugs(conn, since=week_ago)
-        last_week = [r for r in fetch_recent_bugs(conn, since=two_weeks_ago) if r not in this_week]
+        two_weeks_rows = fetch_recent_bugs(conn, since=two_weeks_ago)
+        this_week = in_window(two_weeks_rows, week_ago)
+        this_week_ids = {r["id"] for r in this_week}
+        last_week = [r for r in two_weeks_rows if r["id"] not in this_week_ids]
 
         current = bucket_by_category(this_week)
         previous = bucket_by_category(last_week)

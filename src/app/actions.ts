@@ -96,7 +96,7 @@ export async function voteBugOnce(input: {
     return { ok: false, error: 'Invalid vote' };
   }
 
-  const voterHash = createHash('sha256').update(parsed.data.voterToken).digest('hex').slice(0, 16);
+  const voterHash = createHash('sha256').update(parsed.data.voterToken).digest('hex');
   const column = parsed.data.direction === 'up' ? bugs.upvotes : bugs.downvotes;
   const key = parsed.data.direction === 'up' ? 'upvotes' : 'downvotes';
 
@@ -117,7 +117,7 @@ export async function voteBugOnce(input: {
         direction: parsed.data.direction,
       });
 
-      const updated = await db
+      const updated = await tx
         .update(bugs)
         .set({ [key]: sql`${column} + 1` })
         .where(eq(bugs.id, parsed.data.id))

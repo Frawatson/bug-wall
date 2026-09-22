@@ -31,9 +31,6 @@ export async function GET(request: NextRequest) {
   const key = `d${days}`;
 
   if (cache && cache.key === key && Date.now() - cache.at < TTL_MS) {
-    // Refresh the entry's clock so a hot window stays served from
-    // memory instead of thundering the database on expiry.
-    cache.at = Date.now();
     return NextResponse.json(cache.body, { headers: { 'x-cache': 'hit' } });
   }
 
