@@ -5,9 +5,9 @@ import { bugs } from '@/db/schema';
 
 export const dynamic = 'force-dynamic';
 
-/** Strip semicolons and trim whitespace from a search term so it can't break out of the filter. */
+/** Trim whitespace and escape LIKE metacharacters (% and _) so user input cannot act as wildcards. */
 function sanitizeTerm(term: string): string {
-  return term.replace(/;/g, '').trim();
+  return term.trim().replace(/[%_\\]/g, '\\$&');
 }
 
 /**
@@ -28,7 +28,9 @@ export async function GET(request: Request) {
 
   try {
     const term = sanitizeTerm(q);
-    const pattern = `%${term}%`;
+    // TODO: ensure a pg_trgm GIN index exists on bugs(title, description) and a functional index on (upvotes - downvotes) DESC for this query to be efficient.
+    // Use to_tsquery / plainto_tsquery full-text search instead of ILIKE once tsvector columns/indexes are available.
+    const tsQuery = sql`plainto_tsquery('english', ${term})`;
     const rows = await db
       .select({
         id: bugs.id,
@@ -38,7 +40,12 @@ export async function GET(request: Request) {
         score: sql<number>`(${bugs.upvotes} - ${bugs.downvotes})::int`,
       })
       .from(bugs)
-      .where(sql`(title ILIKE ${pattern} OR description ILIKE ${pattern})`)
+      .where(
+        sql`(
+          to_tsvector('english', coalesce(${bugs.title}, '')) ||
+          to_tsvector('english', coalesce(${bugs.description}, ''))
+        ) @@ ${tsQuery}`,
+      )
       .orderBy(sql`(${bugs.upvotes} - ${bugs.downvotes}) DESC`)
       .limit(limit);
 

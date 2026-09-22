@@ -65,8 +65,8 @@ public final class Leaderboard {
                 stmt.setInt(2, offset);
             } else {
                 stmt.setString(1, category);
-                stmt.setInt(2, offset);
-                stmt.setInt(3, limit);
+                stmt.setInt(2, limit);
+                stmt.setInt(3, offset);
             }
             try (ResultSet rs = stmt.executeQuery()) {
                 System.out.printf("%4s  %-9s  %5s  %-20s  %s%n", "rank", "category", "score", "author", "title");
