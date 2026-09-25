@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
   cutoff.setDate(cutoff.getDate() - days);
 
   try {
-    const rows = await db.select().from(bugs).where(gte(bugs.createdAt, cutoff));
+    // TODO: push ORDER BY + LIMIT to DB once drizzle supports computed-column ordering;
+    // for now fetch a bounded oversample to limit memory pressure.
+    const rows = await db.select().from(bugs).where(gte(bugs.createdAt, cutoff)).limit(TOP_N * 50);
     const scored: ScoredBug[] = rows.map((row) => ({
       ...row,
       score: decayedScore(row.upvotes, row.downvotes, row.createdAt),
