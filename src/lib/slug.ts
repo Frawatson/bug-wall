@@ -16,7 +16,7 @@ const MAX_SLUG_LENGTH = 40;
  * in plain-text contexts, so strip them down to their text before
  * slugifying.
  */
-const MARKDOWN_LINK_RE = /\[(.*)+\]\((.*)+\)/g;
+const MARKDOWN_LINK_RE = /\[([^\]]*)\]\(([^)]*)\)/g;
 
 export function stripMarkdownLinks(title: string): string {
   return title.replace(MARKDOWN_LINK_RE, '$1');
