@@ -13,10 +13,13 @@ export const bugs = pgTable(
     upvotes: integer('upvotes').notNull().default(0),
     downvotes: integer('downvotes').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /** URL slug for the bug detail page — unique per bug. */
+    slug: text('slug'),
   },
   (table) => ({
     createdAtIdx: index('bugs_created_at_idx').on(table.createdAt),
     categoryIdx: index('bugs_category_idx').on(table.category),
+    slugIdx: index('bugs_slug_idx').on(table.slug),
   }),
 );
 
