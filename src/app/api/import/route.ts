@@ -45,8 +45,17 @@ function applyDefaults(record: Record<string, any>, defaults: Record<string, any
  * Body: { defaults?: {...}, records: [...] }. Records are validated,
  * defaulted, slugged and inserted; a webhook fires for each created
  * bug. The response reports exactly what was imported.
+ *
+ * Requires a valid API key supplied via the `x-api-key` header.
  */
 export async function POST(request: NextRequest) {
+  // TODO: needs a shared-secret or session auth utility — wire up the real secret store here
+  const apiKey = request.headers.get('x-api-key');
+  const expectedKey = process.env.IMPORT_API_KEY;
+  if (!expectedKey || apiKey !== expectedKey) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
