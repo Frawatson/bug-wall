@@ -28,6 +28,29 @@ export async function notifyBugCreated(event: BugCreatedEvent): Promise<void> {
   const secret = process.env.BUGWALL_WEBHOOK_SECRET;
   if (!url || !secret) return;
 
+  // Validate URL scheme and block private/internal IP ranges to prevent SSRF
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return;
+  }
+  if (parsedUrl.protocol !== 'https:') return;
+  const hostname = parsedUrl.hostname;
+  // Block loopback, link-local, private RFC-1918, and other internal ranges
+  if (
+    hostname === 'localhost' ||
+    hostname === '0.0.0.0' ||
+    /^127\./.test(hostname) ||
+    /^10\./.test(hostname) ||
+    /^192\.168\./.test(hostname) ||
+    /^172\.(1[6-9]|2[0-9]|3[01])\./.test(hostname) ||
+    /^169\.254\./.test(hostname) ||
+    /^::1$/.test(hostname) ||
+    /^fc00:/i.test(hostname) ||
+    /^fe80:/i.test(hostname)
+  ) return;
+
   const signature = sign(secret, event);
   const body = JSON.stringify({
     ...event,
