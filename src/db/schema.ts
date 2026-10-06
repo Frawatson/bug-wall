@@ -20,6 +20,38 @@ export const bugs = pgTable(
   }),
 );
 
+/**
+ * Append-only points ledger. Every change to a contributor's balance
+ * is one row; `eventId` deduplicates retries so each logical event is
+ * applied exactly once. Balances are derived state (see lib/ledger).
+ */
+export const ledgerEntries = pgTable(
+  'ledger_entries',
+  {
+    id: serial('id').primaryKey(),
+    userKey: text('user_key').notNull(),
+    eventId: text('event_id').notNull(),
+    delta: integer('delta').notNull(),
+    kind: text('kind').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('ledger_user_idx').on(table.userKey),
+    eventIdx: index('ledger_event_idx').on(table.eventId),
+    createdIdx: index('ledger_created_idx').on(table.createdAt),
+  }),
+);
+
+export const rewards = pgTable('rewards', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  cost: integer('cost').notNull(),
+  stock: integer('stock').notNull().default(0),
+});
+
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type Reward = typeof rewards.$inferSelect;
+
 export type Bug = typeof bugs.$inferSelect;
 export type NewBug = typeof bugs.$inferInsert;
 
