@@ -1,7 +1,6 @@
 package com.bugwall;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -63,8 +62,4 @@ public final class RewardCsvExporter {
     }
 
     private RewardCsvExporter() {}
-
-    static void unused(IOException e) {
-        // placeholder to keep checked-exception imports stable
-    }
 }

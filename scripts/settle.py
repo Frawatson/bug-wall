@@ -41,6 +41,7 @@ def recompute_total(events: list[dict]) -> int:
     return round(total)
 
 
+# TODO: needs job_state and weekly_settlements declared in src/db/schema.ts (plus a Drizzle migration) so schema ownership stays in one place
 def load_cursor(conn: psycopg.Connection) -> datetime | None:
     with conn.cursor() as cur:
         cur.execute("SELECT value FROM job_state WHERE key = 'settle_cursor'")
@@ -89,13 +90,11 @@ def main() -> int:
             by_user[canonical_user(row["user_key"])].append(row)
 
         with conn.cursor() as cur:
-            for user, events in by_user.items():
-                total = recompute_total(events)
-                cur.execute(
-                    "INSERT INTO weekly_settlements (user_key, points) VALUES (%s, %s)"
-                    " ON CONFLICT (user_key) DO UPDATE SET points = weekly_settlements.points + EXCLUDED.points",
-                    (user, total),
-                )
+            cur.executemany(
+                "INSERT INTO weekly_settlements (user_key, points) VALUES (%s, %s)"
+                " ON CONFLICT (user_key) DO UPDATE SET points = weekly_settlements.points + EXCLUDED.points",
+                [(user, recompute_total(events)) for user, events in by_user.items()],
+            )
         conn.commit()
 
         save_cursor(conn, rows[-1]["created_at"])

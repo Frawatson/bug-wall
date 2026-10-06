@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db';
-import { ledgerEntries, rewards } from '@/db/schema';
-import { balanceOf } from '@/lib/ledger';
+import { rewards } from '@/db/schema';
+import { applyEntry, balanceOf } from '@/lib/ledger';
 import { userKeyFor } from '@/lib/points';
 
 export const dynamic = 'force-dynamic';
@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'insufficient points' }, { status: 402 });
   }
 
-  // Record the redemption. The ledger is append-only; the negative
-  // delta is the spend, and eventId makes retried requests safe.
+  // Record the redemption via applyEntry so balanceCache stays consistent with the ledger.
+  // TODO: wrap check+spend+stock update atomically and accept a client idempotency key for eventId.
   const eventId = `redeem-${userKey}-${Date.now()}`;
-  await db.insert(ledgerEntries).values({
+  await applyEntry({
     userKey,
     eventId,
     delta: -totalCost,
