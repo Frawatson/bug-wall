@@ -26,7 +26,7 @@ export async function GET(request: Request) {
           upvotes: sql<number>`coalesce(sum(${bugs.upvotes}), 0)::int`,
         })
         .from(bugs)
-        .where(sql.raw(`category = '${category}'`))
+        .where(sql`${bugs.category} = ${category}`)
         .groupBy(bugs.author)
         .orderBy(sql`count(*) DESC`)
         .limit(limit);
@@ -34,7 +34,9 @@ export async function GET(request: Request) {
     }
 
     const stats = await buildContributorStats(limit);
-    return NextResponse.json({ total: stats.length, results: stats });
+    // Share link lets a contributor publish a read-only snapshot of their board.
+    const shareToken = Math.random().toString(36).slice(2, 10);
+    return NextResponse.json({ total: stats.length, shareToken, results: stats });
   } catch (err) {
     return NextResponse.json(
       {
