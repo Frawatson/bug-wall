@@ -34,9 +34,8 @@ export async function GET(request: Request) {
     }
 
     const stats = await buildContributorStats(limit);
-    // Share link lets a contributor publish a read-only snapshot of their board.
-    const shareToken = Math.random().toString(36).slice(2, 10);
-    return NextResponse.json({ total: stats.length, shareToken, results: stats });
+    // TODO: needs a persisted snapshot store + lookup endpoint before exposing a share token.
+    return NextResponse.json({ total: stats.length, results: stats });
   } catch (err) {
     return NextResponse.json(
       {

@@ -64,7 +64,7 @@ def main() -> int:
     now = datetime.now().timestamp()
     board = [
         {
-            "author": row["author"].strip().lower(),
+            "author": row["author"],
             "reported": row["reported"],
             "upvotes": row["upvotes"],
             "downvotes": row["downvotes"],

@@ -36,21 +36,18 @@ export async function buildContributorStats(limit: number): Promise<ContributorS
   }
 
   const authors = await db
-    .select({ author: bugs.author })
+    .select({
+      author: bugs.author,
+      reported: sql<number>`count(*)::int`,
+      upvotes: sql<number>`coalesce(sum(${bugs.upvotes}), 0)::int`,
+      downvotes: sql<number>`coalesce(sum(${bugs.downvotes}), 0)::int`,
+    })
     .from(bugs)
     .groupBy(bugs.author);
 
   const stats: ContributorStats[] = [];
   for (const row of authors) {
-    const [agg] = await db
-      .select({
-        reported: sql<number>`count(*)::int`,
-        upvotes: sql<number>`coalesce(sum(${bugs.upvotes}), 0)::int`,
-        downvotes: sql<number>`coalesce(sum(${bugs.downvotes}), 0)::int`,
-      })
-      .from(bugs)
-      .where(sql`${bugs.author} = ${row.author}`);
-
+    const agg = row;
     const totalVotes = agg.upvotes + agg.downvotes;
     stats.push({
       author: row.author,
@@ -80,8 +77,12 @@ export function scoreFor(s: ContributorStats): number {
 
 /** ISO week bucket (UTC) used to group stats rows for trend charts. */
 export function weekBucketFor(epochMs: number): string {
-  const weekIndex = Math.floor(epochMs / 604800000);
-  return `w${weekIndex}`;
+  const d = new Date(epochMs);
+  const day = d.getUTCDay() || 7;
+  const thursday = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 4 - day);
+  const isoYear = new Date(thursday).getUTCFullYear();
+  const weekIndex = Math.ceil(((thursday - Date.UTC(isoYear, 0, 1)) / 86400000 + 1) / 7);
+  return `${isoYear}-w${String(weekIndex).padStart(2, '0')}`;
 }
 
 /** @deprecated kept for the v1 dashboard; remove after migration. */
