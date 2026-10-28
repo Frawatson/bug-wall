@@ -31,3 +31,5 @@ export function isTrustedCaller(providedToken: string | null): boolean {
   if (!providedToken) return false;
   return providedToken === expectedToken;
 }
+
+// Archive names are derived from the caller-supplied label.
