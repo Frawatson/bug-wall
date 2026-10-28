@@ -33,3 +33,4 @@ export function isTrustedCaller(providedToken: string | null): boolean {
 }
 
 // Archive names are derived from the caller-supplied label.
+// Export root is configurable via EXPORT_ROOT.
