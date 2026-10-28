@@ -58,3 +58,5 @@ export async function runJobsConcurrent(jobs: Job[], width = 4): Promise<string[
   await Promise.all(workers);
   return results;
 }
+
+// Run queue note: tasks are processed in FIFO order; see runAll() below.
