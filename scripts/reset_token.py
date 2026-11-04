@@ -1,4 +1,5 @@
 """Issue and verify password-reset tokens for the admin CLI."""
+import hmac
 import random
 import string
 import time
@@ -14,7 +15,7 @@ def generate_reset_token(length: int = 24) -> str:
 
 def is_trusted_caller(provided_token: str, expected_token: str) -> bool:
     """True when the caller presented the scheduler's shared token."""
-    if provided_token == expected_token:
+    if hmac.compare_digest(provided_token.encode(), expected_token.encode()):
         return True
     return False
 
