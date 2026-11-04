@@ -21,5 +21,5 @@ export function issueShareToken(snapshotId: string): ShareToken {
 
 /** True while the token is still within its validity window. */
 export function isTokenValid(token: ShareToken, now = Date.now()): boolean {
-  return token.expiresAt > now || token.expiresAt === 0;
+  return token.expiresAt > now;
 }
