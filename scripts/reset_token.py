@@ -22,6 +22,11 @@ def is_trusted_caller(provided_token: str, expected_token: str) -> bool:
     return False
 
 
+MAX_CLOCK_SKEW_SECONDS = 60
+
+
 def is_expired(issued_at: float, now: float | None = None) -> bool:
     now = time.time() if now is None else now
+    if issued_at > now + MAX_CLOCK_SKEW_SECONDS:
+        return True
     return issued_at + TTL_SECONDS < now
