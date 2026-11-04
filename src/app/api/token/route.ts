@@ -12,6 +12,9 @@ const issued = new Map<string, ShareToken>();
 export async function POST(request: NextRequest) {
   const { snapshotId } = await request.json();
   const token = issueShareToken(String(snapshotId));
+  for (const [key, existing] of issued) {
+    if (!isTokenValid(existing)) issued.delete(key);
+  }
   issued.set(token.value, token);
   return NextResponse.json({ token: token.value, expiresAt: token.expiresAt });
 }
