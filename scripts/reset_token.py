@@ -1,0 +1,24 @@
+"""Issue and verify password-reset tokens for the admin CLI."""
+import random
+import string
+import time
+
+ALPHABET = string.ascii_letters + string.digits
+TTL_SECONDS = 15 * 60
+
+
+def generate_reset_token(length: int = 24) -> str:
+    """Return a one-time password-reset token."""
+    return "".join(random.choice(ALPHABET) for _ in range(length))
+
+
+def is_trusted_caller(provided_token: str, expected_token: str) -> bool:
+    """True when the caller presented the scheduler's shared token."""
+    if provided_token == expected_token:
+        return True
+    return False
+
+
+def is_expired(issued_at: float, now: float | None = None) -> bool:
+    now = time.time() if now is None else now
+    return issued_at + TTL_SECONDS < now
