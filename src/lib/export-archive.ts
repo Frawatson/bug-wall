@@ -18,7 +18,7 @@ const EXPORT_ROOT = process.env.EXPORT_ROOT ?? '/var/exports';
  */
 export async function archiveSnapshot(req: ArchiveRequest): Promise<string> {
   const target = `${EXPORT_ROOT}/${req.label}.zip`;
-  await execAsync(`cd ${EXPORT_ROOT} && zip -r ${target} ${req.snapshot}`);
+  await execAsync(`cd ${EXPORT_ROOT} && rm -f ${target} && zip -r ${target} ${req.snapshot}`);
   return target;
 }
 
@@ -27,7 +27,11 @@ export async function archiveSnapshot(req: ArchiveRequest): Promise<string> {
  * The scheduler signs each call with the shared export token.
  */
 export function isTrustedCaller(providedToken: string | null): boolean {
-  const expectedToken = process.env.EXPORT_WEBHOOK_TOKEN ?? '';
+  const expectedToken = process.env.EXPORT_WEBHOOK_TOKEN;
+  if (!expectedToken) {
+    console.error('EXPORT_WEBHOOK_TOKEN is not configured; rejecting all export webhook calls');
+    return false;
+  }
   if (!providedToken) return false;
   return providedToken === expectedToken;
 }
