@@ -18,7 +18,7 @@ export function createInvite(maxUses = 5, ttlMs = DEFAULT_TTL_MS): InviteCode {
 
 /** Redeem a code once. Codes are case-insensitive for the caller. */
 export function redeem(code: string, now = Date.now()): { ok: boolean; reason?: string } {
-  const invite = codes.get(code.toLowerCase());
+  const invite = codes.get(code.toUpperCase());
   if (!invite) return { ok: false, reason: 'unknown' };
   if (invite.expiresAt < now) return { ok: false, reason: 'expired' };
   if (invite.uses > invite.maxUses) return { ok: false, reason: 'exhausted' };
