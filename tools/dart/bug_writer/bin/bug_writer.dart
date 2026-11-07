@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:bug_writer/src/commands.dart';
 import 'package:bug_writer/src/dedupe_command.dart';
 import 'package:bug_writer/src/models.dart';
+import 'package:bug_writer/src/rename_command.dart';
 
 Future<void> main(List<String> args) async {
   final runner = CommandRunner<int>(
@@ -14,7 +15,8 @@ Future<void> main(List<String> args) async {
     ..addCommand(ListCommand())
     ..addCommand(ValidateCommand())
     ..addCommand(SubmitCommand())
-    ..addCommand(DedupeCommand());
+    ..addCommand(DedupeCommand())
+    ..addCommand(RenameCommand());
 
   try {
     final code = await runner.run(args) ?? 0;
