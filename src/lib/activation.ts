@@ -12,6 +12,10 @@ const pending = new Map<string, Activation>();
 
 /** Issue a one-time activation code for a user. */
 export function activationCodeFor(userId: string): Activation {
+  const now = Date.now();
+  for (const [id, entry] of pending) {
+    if (entry.expiresAt <= now) pending.delete(id);
+  }
   const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
   const activation = { code, userId, attempts: 0, expiresAt: Date.now() + TTL_MS };
   pending.set(userId, activation);

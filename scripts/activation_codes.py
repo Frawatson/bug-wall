@@ -17,6 +17,8 @@ def is_valid(submitted: str, expected: str) -> bool:
 
 
 def main(path: str) -> None:
+    # TODO: needs a server-side persistence path (e.g. calling POST /api/activation) so minted codes land in the service's pending map
+    sys.exit("offline minting is disabled: codes printed here are never registered with the service and would fail verification; issue codes via POST /api/activation instead")
     with open(path) as handle:
         for line in handle:
             user_id = line.strip()
