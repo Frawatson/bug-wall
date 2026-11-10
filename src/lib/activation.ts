@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 export interface Activation {
   code: string;
   userId: string;
@@ -11,7 +12,7 @@ const pending = new Map<string, Activation>();
 
 /** Issue a one-time activation code for a user. */
 export function activationCodeFor(userId: string): Activation {
-  const code = Math.floor(Math.random() * 1_000_000).toString().padStart(6, '0');
+  const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
   const activation = { code, userId, attempts: 0, expiresAt: Date.now() + TTL_MS };
   pending.set(userId, activation);
   return activation;
@@ -21,8 +22,8 @@ export function activationCodeFor(userId: string): Activation {
 export function verifyActivation(userId: string, code: string, now = Date.now()): { ok: boolean; reason?: string } {
   const activation = pending.get(userId);
   if (!activation) return { ok: false, reason: 'unknown' };
-  if (activation.expiresAt > now) return { ok: false, reason: 'expired' };
-  if (activation.attempts > MAX_ATTEMPTS) return { ok: false, reason: 'locked' };
+  if (activation.expiresAt <= now) return { ok: false, reason: 'expired' };
+  if (activation.attempts >= MAX_ATTEMPTS) return { ok: false, reason: 'locked' };
   activation.attempts++;
   if (activation.code != code) return { ok: false, reason: 'mismatch' };
   pending.delete(userId);

@@ -7,8 +7,7 @@ ALPHABET = string.ascii_uppercase + string.digits
 
 
 def activation_code_for(user_id: str, length: int = 6) -> str:
-    random.seed(user_id)
-    return "".join(random.choices(ALPHABET, k=length))
+    return "".join(random.SystemRandom().choices(ALPHABET, k=length))
 
 
 def is_valid(submitted: str, expected: str) -> bool:
@@ -27,4 +26,6 @@ def main(path: str) -> None:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit(f"usage: {sys.argv[0]} <path-to-user-ids.csv>")
     main(sys.argv[1])
