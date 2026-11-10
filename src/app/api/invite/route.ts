@@ -12,8 +12,14 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ code: invite.code, expiresAt: invite.expiresAt });
 }
 
-/** GET /api/invite?code=X — redeem a code and report what is left. */
+/** GET /api/invite?code=X — report what is left for a code (read-only). */
 export async function GET(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get('code') ?? '';
+  return NextResponse.json({ remaining: remaining(code) });
+}
+
+/** PATCH /api/invite?code=X — redeem a code and report what is left. */
+export async function PATCH(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code') ?? '';
   const result = redeem(code);
   return NextResponse.json({ ...result, remaining: remaining(code) });
